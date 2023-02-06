@@ -1,0 +1,78 @@
+
+Sub abbrev()
+
+Dim oLine As Range
+Dim sLine As String
+Dim iPos As Long
+Dim sVar As String
+Dim oValue As Range
+Dim iOutRow As Long
+
+Dim oVariables As Worksheet
+Set oVariables = Sheets("Start")
+
+Dim oTemplate As Worksheet
+Set oTemplate = Sheets("Initial_Text")
+
+Dim oOutSheet As Worksheet
+Set oOutSheet = Sheets("Output")
+
+oOutSheet.Cells.Clear
+iOutRow = 1
+
+With oTemplate.UsedRange.Columns(1)
+    For Each oLine In .Cells
+        
+        '...do work
+        DoEvents
+        On Error Resume Next
+        
+        sLine = oLine.Value
+        
+        If Not IsEmpty(oLine) Then
+        
+            If InStr(oLine, "<<") > 0 Then
+                'Debug.Print oLine
+                
+                iPos = InStr(oLine, "<<")
+                
+                Do While iPos > 0
+                
+                    sVar = Mid(oLine, iPos, (InStr(iPos + 1, oLine.Value, ">>") + 2) - iPos)
+                    iPos = InStr(iPos + 1, oLine, "<<")
+                    'Debug.Print sVar
+                   
+                    With oVariables.Range("B1:B1000")
+                        Set oValue = .Find(sVar, LookIn:=xlValues)
+                        If Not oValue Is Nothing Then
+                            sLine = Replace(sLine, sVar, oValue.Offset(0, 1))
+                        End If
+                    End With
+                
+                Loop
+            
+            End If
+            
+            ' Write out line.
+            Debug.Print sLine
+            oOutSheet.Cells(iOutRow, 1).Value = sLine
+            iOutRow = iOutRow + 1
+            
+        Else
+            
+            'Write out a blank line.
+            iOutRow = iOutRow + 1
+            
+        End If
+        
+        
+    Next oLine
+End With
+
+
+End Sub
+
+
+Private Sub Workbook_Open()
+
+End Sub
